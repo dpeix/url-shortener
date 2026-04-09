@@ -1,0 +1,6 @@
+{
+    "sonarlint.connectedMode.project": {
+        "connectionId": "dpeix",
+        "projectKey": "dpeix_url-shortener"
+    }
+}
