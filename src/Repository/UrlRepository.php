@@ -5,13 +5,14 @@ declare(strict_types=1);
 namespace App\Repository;
 
 use App\Entity\Url;
+use App\Repository\Interface\UrlRepositoryInterface;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
 /**
  * @extends ServiceEntityRepository<Url>
  */
-final class UrlRepository extends ServiceEntityRepository
+final class UrlRepository extends ServiceEntityRepository implements UrlRepositoryInterface
 {
     public function __construct(ManagerRegistry $registry)
     {

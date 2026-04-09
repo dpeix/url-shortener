@@ -6,14 +6,14 @@ namespace App\Service;
 
 use App\DTO\CreateUrlRequest;
 use App\Entity\Url;
-use App\Repository\UrlRepository;
+use App\Repository\Interface\UrlRepositoryInterface;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 final class UrlService
 {
     public function __construct(
-        private readonly UrlRepository $urlRepository,
+        private readonly UrlRepositoryInterface $urlRepository,
         private readonly EntityManagerInterface $entityManager,
     ) {}
 

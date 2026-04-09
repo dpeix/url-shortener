@@ -6,7 +6,7 @@ namespace App\Tests\Unit\Service;
 
 use App\DTO\CreateUrlRequest;
 use App\Entity\Url;
-use App\Repository\UrlRepository;
+use App\Repository\Interface\UrlRepositoryInterface;
 use App\Service\UrlService;
 use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\MockObject\MockObject;
@@ -15,28 +15,21 @@ use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 final class UrlServiceTest extends TestCase
 {
-    private UrlService $service;
-    private UrlRepository&MockObject $repository;
-    private EntityManagerInterface&MockObject $entityManager;
-
-    protected function setUp(): void
-    {
-        $this->repository = $this->createMock(UrlRepository::class);
-        $this->entityManager = $this->createMock(EntityManagerInterface::class);
-
-        $this->service = new UrlService($this->repository, $this->entityManager);
-    }
-
     public function testCreateReturnsUrl(): void
     {
-        $this->repository->method('findByShortCode')->willReturn(null);
-        $this->entityManager->expects($this->once())->method('persist');
-        $this->entityManager->expects($this->once())->method('flush');
+        $repository = $this->createStub(UrlRepositoryInterface::class);
+        $repository->method('findByShortCode')->willReturn(null);
+
+        $entityManager = $this->createMock(EntityManagerInterface::class);
+        $entityManager->expects($this->once())->method('persist');
+        $entityManager->expects($this->once())->method('flush');
+
+        $service = new UrlService($repository, $entityManager);
 
         $dto = new CreateUrlRequest();
         $dto->originalUrl = 'https://example.com';
 
-        $url = $this->service->create($dto);
+        $url = $service->create($dto);
 
         $this->assertSame('https://example.com', $url->getOriginalUrl());
         $this->assertSame(6, strlen($url->getShortCode()));
@@ -49,21 +42,29 @@ final class UrlServiceTest extends TestCase
             ->setShortCode('abc123')
             ->setIsActive(true);
 
-        $this->repository->method('findByShortCode')->willReturn($url);
-        $this->entityManager->expects($this->once())->method('flush');
+        $repository = $this->createStub(UrlRepositoryInterface::class);
+        $repository->method('findByShortCode')->willReturn($url);
 
-        $resolved = $this->service->resolve('abc123');
+        $entityManager = $this->createMock(EntityManagerInterface::class);
+        $entityManager->expects($this->once())->method('flush');
+
+        $service = new UrlService($repository, $entityManager);
+
+        $resolved = $service->resolve('abc123');
 
         $this->assertSame(1, $resolved->getClickCount());
     }
 
     public function testResolveThrowsWhenNotFound(): void
     {
-        $this->repository->method('findByShortCode')->willReturn(null);
+        $repository = $this->createStub(UrlRepositoryInterface::class);
+        $repository->method('findByShortCode')->willReturn(null);
+
+        $service = new UrlService($repository, $this->createStub(EntityManagerInterface::class));
 
         $this->expectException(NotFoundHttpException::class);
 
-        $this->service->resolve('unknown');
+        $service->resolve('unknown');
     }
 
     public function testResolveThrowsWhenExpired(): void
@@ -74,11 +75,14 @@ final class UrlServiceTest extends TestCase
             ->setIsActive(true)
             ->setExpiresAt(new \DateTimeImmutable('-1 day'));
 
-        $this->repository->method('findByShortCode')->willReturn($url);
+        $repository = $this->createStub(UrlRepositoryInterface::class);
+        $repository->method('findByShortCode')->willReturn($url);
+
+        $service = new UrlService($repository, $this->createStub(EntityManagerInterface::class));
 
         $this->expectException(NotFoundHttpException::class);
 
-        $this->service->resolve('abc123');
+        $service->resolve('abc123');
     }
 
     public function testResolveThrowsWhenInactive(): void
@@ -88,10 +92,13 @@ final class UrlServiceTest extends TestCase
             ->setShortCode('abc123')
             ->setIsActive(false);
 
-        $this->repository->method('findByShortCode')->willReturn($url);
+        $repository = $this->createStub(UrlRepositoryInterface::class);
+        $repository->method('findByShortCode')->willReturn($url);
+
+        $service = new UrlService($repository, $this->createStub(EntityManagerInterface::class));
 
         $this->expectException(NotFoundHttpException::class);
 
-        $this->service->resolve('abc123');
+        $service->resolve('abc123');
     }
 }
