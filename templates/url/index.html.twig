@@ -1,20 +1,103 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Hello UrlController!{% endblock %}
+{% block title %}Raccourcisseur d'URL{% endblock %}
 
 {% block body %}
-<style>
-    .example-wrapper { margin: 1em auto; max-width: 800px; width: 95%; font: 18px/1.5 sans-serif; }
-    .example-wrapper code { background: #F5F5F5; padding: 2px 6px; }
-</style>
+<div class="row justify-content-center">
+    <div class="col-lg-8">
 
-<div class="example-wrapper">
-    <h1>Hello {{ controller_name }}! ✅</h1>
+        {# Formulaire de création #}
+        <div class="card shadow-sm mb-5"
+             data-controller="url-shortener"
+             data-url-shortener-create-url-value="{{ path('api_urls_create') }}">
 
-    This friendly message is coming from:
-    <ul>
-        <li>Your controller at <code>/app/src/Controller/UrlController.php</code></li>
-        <li>Your template at <code>/app/templates/url/index.html.twig</code></li>
-    </ul>
+            <div class="card-body p-4">
+                <h1 class="h3 mb-1 fw-bold">Raccourcir une URL</h1>
+                <p class="text-muted mb-4">Collez votre lien long et obtenez un lien court instantanément.</p>
+
+                <form data-action="submit->url-shortener#create" novalidate>
+                    <div class="mb-3">
+                        <label for="originalUrl" class="form-label fw-semibold">URL originale</label>
+                        <input
+                            type="url"
+                            id="originalUrl"
+                            class="form-control form-control-lg"
+                            placeholder="https://exemple.com/un-lien-tres-long"
+                            data-url-shortener-target="input"
+                            required
+                        >
+                        <div class="invalid-feedback" data-url-shortener-target="inputError"></div>
+                    </div>
+
+                    <div class="mb-4">
+                        <label for="expiresAt" class="form-label fw-semibold">
+                            Expiration
+                            <span class="text-muted fw-normal">(optionnel)</span>
+                        </label>
+                        <input
+                            type="datetime-local"
+                            id="expiresAt"
+                            class="form-control"
+                            data-url-shortener-target="expiresAt"
+                        >
+                    </div>
+
+                    <button type="submit" class="btn btn-dark btn-lg w-100" data-url-shortener-target="submitButton">
+                        <span class="spinner-border spinner-border-sm me-2 d-none" data-url-shortener-target="spinner"></span>
+                        Raccourcir
+                    </button>
+                </form>
+
+                {# Résultat après création #}
+                <div class="mt-4 d-none" data-url-shortener-target="result">
+                    <div class="alert alert-success mb-0">
+                        <div class="d-flex align-items-center justify-content-between gap-2 flex-wrap">
+                            <div>
+                                <div class="fw-semibold mb-1">Votre lien court :</div>
+                                <a href="#" class="text-success fw-bold text-break" data-url-shortener-target="shortLink" target="_blank"></a>
+                            </div>
+                            <button
+                                type="button"
+                                class="btn btn-outline-success btn-sm"
+                                data-action="click->url-shortener#copy"
+                                data-url-shortener-target="copyButton"
+                            >
+                                Copier
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                {# Erreur globale #}
+                <div class="mt-4 d-none" data-url-shortener-target="errorAlert">
+                    <div class="alert alert-danger mb-0">
+                        <span data-url-shortener-target="errorMessage"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {# Liste des URLs #}
+        <div data-controller="url-list" data-url-list-api-url-value="{{ path('api_urls_list') }}">
+            <div class="d-flex align-items-center justify-content-between mb-3">
+                <h2 class="h5 mb-0 fw-bold">Liens créés</h2>
+                <span class="badge bg-secondary" data-url-list-target="count">{{ urls|length }}</span>
+            </div>
+
+            {% if urls is empty %}
+                <div class="text-center text-muted py-5" data-url-list-target="empty">
+                    <div style="font-size: 3rem">🔗</div>
+                    <p class="mt-2">Aucun lien pour l'instant.</p>
+                </div>
+            {% endif %}
+
+            <div class="d-flex flex-column gap-3" data-url-list-target="list">
+                {% for url in urls %}
+                    {% include 'url/_row.html.twig' with { url: url } %}
+                {% endfor %}
+            </div>
+        </div>
+
+    </div>
 </div>
 {% endblock %}

@@ -1,3 +1,19 @@
 body {
-    background-color: skyblue;
+    background-color: #f8f9fa;
+}
+
+.card {
+    border: 1px solid rgba(0, 0, 0, .08);
+    border-radius: .75rem;
+}
+
+.navbar-brand {
+    font-size: 1.25rem;
+    letter-spacing: -.01em;
+}
+
+.text-truncate {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
